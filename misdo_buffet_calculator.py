@@ -56,6 +56,27 @@ filtered_df["個数"] = filtered_df["商品名"].apply(
 
 # 合計金額計算
 subtotal = (filtered_df["価格"] * filtered_df["個数"]).sum()
+# ------------------------------
+# 🏷 食べ放題価格の入力欄
+# ------------------------------
+st.markdown("### 🧾 食べ放題コースの金額を入力してください")
+buffet_price = st.number_input("💰 食べ放題の価格（円）", min_value=0, max_value=10000, step=100, value=1800)
+
+# ------------------------------
+# 💡 損得計算
+# ------------------------------
+diff = subtotal - buffet_price
+
+st.markdown("---")
+if buffet_price == 0:
+    st.info("※ 食べ放題の金額が未入力です")
+elif diff > 0:
+    st.success(f"🎉 元を取りました！ **¥{diff:,}** お得です！")
+elif diff == 0:
+    st.info("🟰 ちょうど元を取りました！ナイス！")
+else:
+    st.warning(f"📉 あと **¥{abs(diff):,}** で元が取れます！がんばれ！")
+
 
 # 合計表示
 st.markdown("---")
