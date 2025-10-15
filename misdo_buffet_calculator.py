@@ -103,11 +103,11 @@ df = pd.DataFrame(menu_data, columns=["商品名", "価格", "カテゴリ", "�
 
 st.title("🍩 ミスタードーナツ 食べ放題計算機")
 
-# カテゴリ選択（必須）
+# カテゴリ選択（selectboxで安定動作）
 categories = sorted(df["カテゴリ"].unique())
-selected_category = st.sidebar.radio("カテゴリを選んでください：", categories)
+selected_category = st.sidebar.selectbox("カテゴリを選んでください：", categories)
 
-# サブカテゴリ（任意）
+# サブカテゴリ選択
 sub_df = df[df["カテゴリ"] == selected_category]
 subcategories = ["すべて"] + sorted(sub_df["サブカテゴリ"].unique())
 selected_subcategory = st.sidebar.selectbox("サブカテゴリを選んでください：", subcategories)
@@ -117,18 +117,18 @@ filtered_df = sub_df.copy()
 if selected_subcategory != "すべて":
     filtered_df = filtered_df[filtered_df["サブカテゴリ"] == selected_subcategory]
 
-# ヘッダー表示
+# 表示ヘッダー
 st.header(f"カテゴリ：{selected_category} / サブカテゴリ：{selected_subcategory if selected_subcategory != 'すべて' else '全て'}")
 
-# 商品入力欄
+# 商品ごとの入力欄
 filtered_df["個数"] = filtered_df["商品名"].apply(
     lambda name: st.number_input(name, min_value=0, max_value=20, step=1, key=name)
 )
 
-# 合計金額
+# 合計金額計算
 subtotal = (filtered_df["価格"] * filtered_df["個数"]).sum()
 
-# 結果表示
+# 合計表示
 st.markdown("---")
 st.subheader(f"🍽 合計金額：¥{int(subtotal):,}")
 st.caption("※ 価格はすべてイートイン・税込価格です")
