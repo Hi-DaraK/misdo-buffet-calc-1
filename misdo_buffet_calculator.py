@@ -103,52 +103,32 @@ df = pd.DataFrame(menu_data, columns=["商品名", "価格", "カテゴリ", "�
 
 st.title("🍩 ミスタードーナツ 食べ放題計算機")
 
-# カテゴリとサブカテゴリのフィルター
-categories = ["すべて"] + sorted(df["カテゴリ"].unique())
-selected_category = st.selectbox("カテゴリを選んでください：", categories)
+# カテゴリ選択（必須）
+categories = sorted(df["カテゴリ"].unique())
+selected_category = st.sidebar.radio("カテゴリを選んでください：", categories)
 
-if selected_category != "すべて":
-    subcategories = ["すべて"] + sorted(df[df["カテゴリ"] == selected_category]["サブカテゴリ"].unique())
-    selected_subcategory = st.selectbox("サブカテゴリを選んでください：", subcategories)
-else:
-    selected_subcategory = "すべて"
+# サブカテゴリ（任意）
+sub_df = df[df["カテゴリ"] == selected_category]
+subcategories = ["すべて"] + sorted(sub_df["サブカテゴリ"].unique())
+selected_subcategory = st.sidebar.selectbox("サブカテゴリを選んでください：", subcategories)
 
-# フィルタリング
-filtered_df = df.copy()
-if selected_category != "すべて":
-    filtered_df = filtered_df[filtered_df["カテゴリ"] == selected_category]
+# 絞り込み
+filtered_df = sub_df.copy()
 if selected_subcategory != "すべて":
     filtered_df = filtered_df[filtered_df["サブカテゴリ"] == selected_subcategory]
 
-# 表示・入力・計算
-all_inputs = []
+# ヘッダー表示
+st.header(f"カテゴリ：{selected_category} / サブカテゴリ：{selected_subcategory if selected_subcategory != 'すべて' else '全て'}")
 
-if selected_category == "すべて":
-    grouped = filtered_df.groupby(["カテゴリ", "サブカテゴリ"])
-elif selected_subcategory == "すべて":
-    grouped = filtered_df.groupby(["サブカテゴリ"])
-else:
-    grouped = [(None, filtered_df)]
+# 商品入力欄
+filtered_df["個数"] = filtered_df["商品名"].apply(
+    lambda name: st.number_input(name, min_value=0, max_value=20, step=1, key=name)
+)
 
-for group, group_df in grouped:
-    if isinstance(group, tuple):
-        cat, subcat = group
-        st.markdown(f"### {cat} > {subcat}")
-    elif group is not None:
-        st.markdown(f"### {group}")
+# 合計金額
+subtotal = (filtered_df["価格"] * filtered_df["個数"]).sum()
 
-    group_df = group_df.copy()
-    group_df["個数"] = group_df["商品名"].apply(
-        lambda name: st.number_input(name, min_value=0, max_value=20, step=1, key=name)
-    )
-    all_inputs.append(group_df)
-
-if all_inputs:
-    final_df = pd.concat(all_inputs)
-    total = (final_df["価格"] * final_df["個数"]).sum()
-    st.markdown("---")
-    st.subheader(f"🍽 合計金額：¥{int(total):,}")
-else:
-    st.warning("表示する商品がありません。カテゴリまたはサブカテゴリを選び直してください。")
-
+# 結果表示
+st.markdown("---")
+st.subheader(f"🍽 合計金額：¥{int(subtotal):,}")
 st.caption("※ 価格はすべてイートイン・税込価格です")
