@@ -1,55 +1,81 @@
+# ミスド食べ放題計算機 - メニュー差し替え＋カテゴリ別フィルター機能付き
+
 import streamlit as st
+import pandas as pd
 
-donut_menu = {
-    "ポン・デ・リング": 140,
-    "エンゼルクリーム": 151,
-    "オールドファッション": 140,
-    "ゴールデンチョコレート": 151,
-    "フレンチクルーラー": 140,
-    "チョコファッション": 151,
-    "ハニーディップ": 140,
-    "ストロベリーリング": 151
-}
+# ------------------------
+# 新しいメニュー表（2025年10月版）
+# ------------------------
+menu_data = [
+    # 期間限定
+    ("きのことチキンのクリームシチューパイ", 264, "期間限定"),
+    ("ミートソースのラザニア風パイ", 264, "期間限定"),
+    ("つぶつぶコーンクリームパイ", 264, "期間限定"),
+    ("ブラックサンダーチョコレート", 242, "期間限定"),
+    ("ブラックサンダー＆エンゼル", 242, "期間限定"),
+    ("ブラックサンダーチョコファッション", 242, "期間限定"),
+    ("ポン・デ・チョコデビル", 209, "期間限定"),
+    ("さつまいもド しっとりスイートポテト", 209, "期間限定"),
+    ("さつまいもド とろり濃蜜いもソース", 187, "期間限定"),
+    ("さつまいもド 香ばしブリュレ", 209, "期間限定"),
+    ("くりド マロンホイップ＆ハニー", 242, "期間限定"),
+    ("くりド エンゼル＆マロン風味チョコ", 242, "期間限定"),
+    ("ニューホームカット ハニー", 187, "期間限定"),
+    ("ニューホームカット バタークランチ", 209, "期間限定"),
+    ("ニューホームカット メープル", 198, "期間限定"),
+    ("ニューホームカット あんバター", 231, "期間限定"),
+    ("ニューホームカット オリジナル", 187, "期間限定"),
+    ("ニューホームカット シナモン", 187, "期間限定"),
 
-def main():
-    st.title("🍩 ミスド食べ放題カリキュレーター")
+    # ザクもっち
+    ("ザクもっちドッグ あらびきソーセージ", 363, "ザクもっち"),
+    ("ザクもっちドッグ 欧風カレー", 319, "ザクもっち"),
+    ("ザクもっちドッグ タマゴ", 319, "ザクもっち"),
 
-    buffet_price = st.number_input("食べ放題の料金（円）", value=1500, step=10)
+    # 恒常（定番）
+    ("ポン・デ・リング", 176, "定番"),
+    ("ポン・デ・黒糖", 176, "定番"),
+    ("ポン・デ・ストロベリー", 187, "定番"),
+    ("チョコファッション", 187, "定番"),
+    ("フレンチクルーラー", 176, "定番"),
+    ("エンゼルフレンチ", 187, "定番"),
+    ("ハニーディップ", 176, "定番"),
+    ("シュガーレイズド", 176, "定番"),
+    ("チョコリング", 187, "定番"),
+    ("ストロベリーリング", 187, "定番"),
+    ("チョコレート", 176, "定番"),
+    ("ゴールデンチョコレート", 187, "定番"),
+    ("しっとりマフィン チョコ", 253, "定番"),
+    ("ふかふか焼きドーナッツ プレーン［ミニサイズ］2個入り", 451, "定番"),
+]
 
-    st.markdown("---")
-    st.header("🍩 食べたドーナツを記録")
+# データフレーム化
+df = pd.DataFrame(menu_data, columns=["商品名", "価格", "カテゴリ"])
 
-    donut = st.selectbox("ドーナツの種類を選んでください", list(donut_menu.keys()))
-    quantity = st.number_input("個数", min_value=1, value=1, step=1)
+# ------------------------
+# UI 表示
+# ------------------------
 
-    if "eaten" not in st.session_state:
-        st.session_state.eaten = []
+st.title("ミスタードーナツ 食べ放題計算機")
 
-    if st.button("追加"):
-        st.session_state.eaten.append({"name": donut, "price": donut_menu[donut], "qty": quantity})
+# フィルター（カテゴリ選択）
+categories = ["すべて"] + sorted(df["カテゴリ"].unique())
+selected_category = st.selectbox("カテゴリを選んでください：", categories)
 
-    if st.session_state.eaten:
-        st.subheader("✅ 食べたドーナツ一覧")
-        total = 0
-        for item in st.session_state.eaten:
-            item_total = item["price"] * item["qty"]
-            total += item_total
-            st.write(f"{item['name']} × {item['qty']}個 → {item_total} 円")
+# フィルター処理
+display_df = df if selected_category == "すべて" else df[df["カテゴリ"] == selected_category]
 
-        st.markdown("---")
-        st.subheader("☁️ 結果")
-        st.write(f"合計金額: {total} 円")
+# 商品選択
+display_df["個数"] = display_df["商品名"].apply(
+    lambda name: st.number_input(name, min_value=0, max_value=20, step=1, key=name)
+)
 
-        diff = total - buffet_price
-        if diff > 0:
-            st.success(f"{diff} 円お得でした！")
-        elif diff == 0:
-            st.info("ちょうど元が取れました！")
-        else:
-            st.warning(f"あと {-diff} 円で元が取れました。")
+# 合計金額計算
+subtotal = (display_df["価格"] * display_df["個数"]).sum()
 
-    if st.button("リセット"):
-        st.session_state.eaten = []
+# 結果表示
+st.markdown("---")
+st.subheader(f"🍩 合計金額：¥{int(subtotal):,}")
 
-if __name__ == "__main__":
-    main()
+# 注意書き
+st.caption("※ 価格はすべてイートイン・税込価格です")
