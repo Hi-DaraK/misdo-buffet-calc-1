@@ -46,7 +46,8 @@ if selected_sub != "すべて":
     filtered_df = filtered_df[filtered_df["サブカテゴリ"] == selected_sub]
 
 # タイトル表示
-st.header(f"カテゴリ：{selected_main if selected_main != 'すべて' else '全体'} / ジャンル：{selected_sub if selected_sub != 'すべて' else '全体'}")
+#st.header(f"カテゴリ：{selected_main if selected_main != 'すべて' else '全体'} / ジャンル：{selected_sub if selected_sub != 'すべて' else '全体'}")
+st.markdown(f"### カテゴリ：{selected_main if selected_main != 'すべて' else '全体'} / ジャンル：{selected_sub if selected_sub != 'すべて' else '全体'}")
 
 # 個数入力欄
 filtered_df["個数"] = filtered_df["商品名"].apply(
