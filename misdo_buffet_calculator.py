@@ -1,7 +1,7 @@
-# ミスド食べ放題計算機 - メニュー完全復元＋サブカテゴリ対応
-
 import streamlit as st
 import pandas as pd
+
+st.set_page_config(page_title="ミスド食べ放題計算機", page_icon="🍩")
 
 # ------------------------
 # メニュー表（2025年10月版・完全復元）
@@ -33,7 +33,7 @@ menu_data = [
     ("ニューホームカット オリジナル", 187, "期間限定", "ニューホームカット"),
     ("ニューホームカット シナモン", 187, "期間限定", "ニューホームカット"),
 
-    # ザクもっち > 惣菜系
+    # ザクもっち
     ("ザクもっちドッグ あらびきソーセージ", 363, "ザクもっち", "惣菜系"),
     ("ザクもっちドッグ 欧風カレー", 319, "ザクもっち", "惣菜系"),
     ("ザクもっちドッグ タマゴ", 319, "ザクもっち", "惣菜系"),
@@ -72,7 +72,7 @@ menu_data = [
     ("もっちりフルーツスティック シナモン", 176, "定番", "スティック系"),
     ("ハニーチュロ", 176, "定番", "チュロ系"),
 
-    # 定番 > ドーナツポップ（個別）
+    # 定番 > ドーナツポップ
     ("ドーナツポップ チョコファッションボール", 46, "定番", "ドーナツポップ"),
     ("ドーナツポップ エンゼルクリームボール", 46, "定番", "ドーナツポップ"),
     ("ドーナツポップ ポン・デ・ストロベリーボール", 46, "定番", "ドーナツポップ"),
@@ -91,7 +91,7 @@ menu_data = [
     ("ホット・スイーツパイ りんご", 253, "定番", "パイ"),
 
     # 定番 > アレルギー対応
-    ("ふかふか焼きドーナッツ プレーン［ミニサイズ］2個入り", 451, "定番", "特定原材料不使用")
+    ("ふかふか焼きドーナッツ プレーン［ミニサイズ］2個入り", 451, "定番", "特定原材料不使用"),
 ]
 
 # データフレーム化
@@ -101,38 +101,54 @@ df = pd.DataFrame(menu_data, columns=["商品名", "価格", "カテゴリ", "�
 # UI 表示
 # ------------------------
 
-st.title("ミスタードーナツ 食べ放題計算機")
+st.title("🍩 ミスタードーナツ 食べ放題計算機")
 
-# フィルター（カテゴリ）
+# カテゴリとサブカテゴリのフィルター
 categories = ["すべて"] + sorted(df["カテゴリ"].unique())
 selected_category = st.selectbox("カテゴリを選んでください：", categories)
 
-# サブカテゴリフィルター
 if selected_category != "すべて":
     subcategories = ["すべて"] + sorted(df[df["カテゴリ"] == selected_category]["サブカテゴリ"].unique())
     selected_subcategory = st.selectbox("サブカテゴリを選んでください：", subcategories)
 else:
     selected_subcategory = "すべて"
 
-# フィルター処理
+# フィルタリング
 filtered_df = df.copy()
 if selected_category != "すべて":
     filtered_df = filtered_df[filtered_df["カテゴリ"] == selected_category]
 if selected_subcategory != "すべて":
     filtered_df = filtered_df[filtered_df["サブカテゴリ"] == selected_subcategory]
 
-# 商品選択
-filtered_df["個数"] = filtered_df["商品名"].apply(
-    lambda name: st.number_input(name, min_value=0, max_value=20, step=1, key=name)
-)
+# 表示・入力・計算
+all_inputs = []
 
-# 合計金額計算
-subtotal = (filtered_df["価格"] * filtered_df["個数"]).sum()
+if selected_category == "すべて":
+    grouped = filtered_df.groupby(["カテゴリ", "サブカテゴリ"])
+elif selected_subcategory == "すべて":
+    grouped = filtered_df.groupby(["サブカテゴリ"])
+else:
+    grouped = [(None, filtered_df)]
 
-# 結果表示
-st.markdown("---")
-st.subheader(f"🍩 合計金額：¥{int(subtotal):,}")
+for group, group_df in grouped:
+    if isinstance(group, tuple):
+        cat, subcat = group
+        st.markdown(f"### {cat} > {subcat}")
+    elif group is not None:
+        st.markdown(f"### {group}")
 
-# 注意書き
+    group_df = group_df.copy()
+    group_df["個数"] = group_df["商品名"].apply(
+        lambda name: st.number_input(name, min_value=0, max_value=20, step=1, key=name)
+    )
+    all_inputs.append(group_df)
+
+if all_inputs:
+    final_df = pd.concat(all_inputs)
+    total = (final_df["価格"] * final_df["個数"]).sum()
+    st.markdown("---")
+    st.subheader(f"🍽 合計金額：¥{int(total):,}")
+else:
+    st.warning("表示する商品がありません。カテゴリまたはサブカテゴリを選び直してください。")
+
 st.caption("※ 価格はすべてイートイン・税込価格です")
-
