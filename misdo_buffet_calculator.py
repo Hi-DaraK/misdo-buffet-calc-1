@@ -6,7 +6,7 @@ st.set_page_config(page_title="ミスド食べ放題計算機", page_icon="🍩"
 # ---------------------------------------
 # 🔗 外部CSVのURL（★必要に応じて変更）
 # ---------------------------------------
-CSV_URL = "https://raw.githubusercontent.com/あなたのユーザー名/リポジトリ名/main/data/menu_202510.csv"
+CSV_URL = "https://raw.githubusercontent.com/Hi-daraK/misdo-buffet-calc-1/main/data/menu_202510.csv"
 
 @st.cache_data
 def load_menu(url):
