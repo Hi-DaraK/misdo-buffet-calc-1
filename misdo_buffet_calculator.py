@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="ミスド食べ放題計算機", page_icon="🍩")
+st.set_page_config(page_title="食べ放題計算機", page_icon="🍩")
 
 # ---------------------------------------
 # 🔗 外部CSVのURL（★必要に応じて変更）
