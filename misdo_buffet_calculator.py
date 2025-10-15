@@ -3,10 +3,7 @@ import pandas as pd
 
 st.set_page_config(page_title="ミスド食べ放題計算機", page_icon="🍩")
 
-# ------------------------
-# 外部CSVからメニュー読み込み
-# ------------------------
-CSV_URL = "https://raw.githubusercontent.com/あなたのユーザー名/あなたのリポジトリ名/main/data/menu_202510.csv"
+CSV_URL = "https://raw.githubusercontent.com/あなたのユーザー名/リポジトリ名/main/data/menu_202510.csv"
 
 @st.cache_data
 def load_menu(url):
@@ -16,37 +13,34 @@ def load_menu(url):
 
 df = load_menu(CSV_URL)
 
-# ------------------------
-# UI 表示
-# ------------------------
+# カテゴリを分解
+df[["大カテゴリ", "サブカテゴリ"]] = df["カテゴリ"].str.split("：", expand=True)
 
+# === UI ===
 st.title("🍩 ミスタードーナツ 食べ放題計算機")
 
-# カテゴリとサブカテゴリを分割抽出
-df["カテゴリ名"] = df["カテゴリ"].str.split("：").str[0]
-df["サブカテゴリ"] = df["カテゴリ"].str.split("：").str[1]
+# 第一段階：大カテゴリ（定番／期間限定／ザクもっち etc）
+main_categories = ["すべて"] + sorted(df["大カテゴリ"].dropna().unique())
+selected_main = st.selectbox("大カテゴリを選んでください：", main_categories)
 
-# カテゴリ選択バー
-unique_categories = df["カテゴリ名"].dropna().unique().tolist()
-selected_category = st.selectbox("カテゴリを選んでください：", ["すべて"] + unique_categories)
-
-# サブカテゴリ選択バー（絞り込み付き）
-if selected_category != "すべて":
-    filtered_df = df[df["カテゴリ名"] == selected_category].copy()
-else:
+# 第二段階：サブカテゴリ
+if selected_main == "すべて":
     filtered_df = df.copy()
+    subcats = sorted(df["サブカテゴリ"].dropna().unique())
+else:
+    filtered_df = df[df["大カテゴリ"] == selected_main].copy()
+    subcats = sorted(filtered_df["サブカテゴリ"].dropna().unique())
 
-unique_subcats = filtered_df["サブカテゴリ"].dropna().unique().tolist()
-selected_subcat = st.selectbox("サブカテゴリを選んでください：", ["すべて"] + unique_subcats)
+selected_sub = st.selectbox("サブカテゴリを選んでください：", ["すべて"] + subcats)
 
-# 最終フィルタリング
-if selected_subcat != "すべて":
-    filtered_df = filtered_df[filtered_df["サブカテゴリ"] == selected_subcat]
+# フィルタ適用
+if selected_sub != "すべて":
+    filtered_df = filtered_df[filtered_df["サブカテゴリ"] == selected_sub]
 
-st.header(f"カテゴリ：{selected_category if selected_category != 'すべて' else '全体'}"
-          f" / サブカテゴリ：{selected_subcat if selected_subcat != 'すべて' else '全体'}")
+st.header(f"カテゴリ：{selected_main if selected_main != 'すべて' else '全体'}"
+          f" / ジャンル：{selected_sub if selected_sub != 'すべて' else '全体'}")
 
-# 商品と個数入力
+# 個数入力
 filtered_df["個数"] = filtered_df["商品名"].apply(
     lambda name: st.number_input(name, min_value=0, max_value=20, step=1, key=name)
 )
@@ -54,7 +48,6 @@ filtered_df["個数"] = filtered_df["商品名"].apply(
 # 合計金額計算
 subtotal = (filtered_df["価格"] * filtered_df["個数"]).sum()
 
-# 合計表示
 st.markdown("---")
 st.subheader(f"🍽 合計金額：¥{int(subtotal):,}")
 st.caption("※ 価格はすべてイートイン・税込価格です")
