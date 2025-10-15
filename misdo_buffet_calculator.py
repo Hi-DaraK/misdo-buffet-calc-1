@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="食べ放題計算機", page_icon="🍩")
+st.set_page_config(page_title="ドーナツ食べ放題計算機", page_icon="🍩")
 
 # ---------------------------------------
 # 🔗 外部CSVのURL（★必要に応じて変更）
@@ -24,7 +24,7 @@ df[["大カテゴリ", "サブカテゴリ"]] = df["カテゴリ"].str.split("�
 # ---------------------------------------
 # 🖼️ UI 表示
 # ---------------------------------------
-st.title("🍩 ミスタードーナツ 食べ放題計算機")
+st.title("🍩 食べ放題計算機")
 
 # 第1フィルター：大カテゴリ（定番 / 期間限定 / ザクもっち etc）
 main_categories = ["すべて"] + sorted(df["大カテゴリ"].dropna().unique())
