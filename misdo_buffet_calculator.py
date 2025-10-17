@@ -2,19 +2,18 @@ import streamlit as st
 import pandas as pd
 
 st.set_page_config(page_title="ドーナツ食べ放題計算機", page_icon="🍩")
-
 # ---------------------------------------
-# 🔗 外部CSVのURL（★必要に応じて変更）
+# 🔗 外部CSVのURL → 🔽 リポジトリ内のローカルファイルに変更
 # ---------------------------------------
-CSV_URL = "https://raw.githubusercontent.com/Hi-daraK/misdo-buffet-calc-1/main/data/menu.csv"
+CSV_PATH = "data/menu.csv"  # ← 相対パスで指定
 
 @st.cache_data
-def load_menu(url):
-    df = pd.read_csv(url, encoding="utf-8-sig")
+def load_menu(path):
+    df = pd.read_csv(path, encoding="utf-8-sig")  # ← url → path に変更
     df["価格"] = pd.to_numeric(df["価格"], errors="coerce").fillna(0).astype(int)
     return df
 
-df = load_menu(CSV_URL)
+df = load_menu(CSV_PATH)  # ← CSV_URL → CSV_PATH に変更
 
 # ---------------------------------------
 # 📊 カテゴリ分割
