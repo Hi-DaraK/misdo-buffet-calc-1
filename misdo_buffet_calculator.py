@@ -81,3 +81,9 @@ else:
 st.markdown("---")
 st.subheader(f"🍽 合計金額：¥{int(subtotal):,}")
 st.caption("※ 価格はすべてイートイン・税込価格です")
+
+# ---------------------------------------
+# 🖋 Presented by 表記
+# ---------------------------------------
+st.markdown("---")
+st.markdown("<div style='text-align: right; font-size: 12px; color: gray;'>Presented by 原田くん🐧</div>", unsafe_allow_html=True)
