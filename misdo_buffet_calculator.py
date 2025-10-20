@@ -59,7 +59,7 @@ subtotal = (filtered_df["価格"] * filtered_df["個数"]).sum()
 # 🏷 食べ放題価格の入力欄
 # ------------------------------
 st.markdown("### 🧾 食べ放題コースの金額を入力してください")
-buffet_price = st.number_input("💰 食べ放題の価格（円）", min_value=0, max_value=10000, step=100, value=1800)
+buffet_price = st.number_input("💰 食べ放題の価格（円）", min_value=0, max_value=10000, step=100, value=2000)
 
 # ------------------------------
 # 💡 損得計算
